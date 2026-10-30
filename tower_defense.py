@@ -1,3 +1,6 @@
+import sys
+from pathlib import Path
+
 movimentos = {
     'N': (0, -1),
     'S': (0, 1),
@@ -7,24 +10,24 @@ movimentos = {
 
 def calcular_dano(tabuleiro, x, y):
     dano = 0
-    tamanho_tabuleiro = len(tabuleiro)
-    
+    altura, largura = len(tabuleiro), len(tabuleiro[0])
+
     for var_x in [-1, 0, 1]:
         for var_y in [-1, 0, 1]:
             if var_x == 0 and var_y == 0:
                 continue
-        
+
             adj_x, adj_y = x + var_x, y + var_y
-            
-            if 0 <= adj_x < tamanho_tabuleiro:
-                if 0 <= adj_y < tamanho_tabuleiro:
+
+            if 0 <= adj_x < largura:
+                if 0 <= adj_y < altura:
                     if tabuleiro[adj_y][adj_x] == 'T':
                         dano += 10
     return dano
 
 def forca_bruta(tabuleiro):
-    tamanho_tabuleiro = len(tabuleiro)
-    destino = (tamanho_tabuleiro - 1, tamanho_tabuleiro - 1)
+    altura, largura = len(tabuleiro), len(tabuleiro[0])
+    destino = (largura - 1, altura - 1)
 
     melhor_dano = [float('inf')]
     melhor_caminho = ['']
@@ -44,7 +47,7 @@ def forca_bruta(tabuleiro):
         for movimento, (movimento_x, movimento_y) in movimentos.items():
             novo_x, novo_y = x + movimento_x, y + movimento_y
 
-            if 0 <= novo_x < tamanho_tabuleiro and 0 <= novo_y < tamanho_tabuleiro:
+            if 0 <= novo_x < largura and 0 <= novo_y < altura:
                 if (novo_x, novo_y) not in visitados and tabuleiro[novo_y][novo_x] != 'T':
                     visitados.add((novo_x, novo_y))
                     novo_dano = dano_acumulado + calcular_dano(tabuleiro, novo_x, novo_y)
@@ -60,15 +63,15 @@ def ler_tabuleiro(nome_arquivo):
     with open(nome_arquivo, 'r') as f:
         linhas = f.read().splitlines()
 
-    tamanho = int(linhas[0])
-    tabuleiro = [list(linha.strip()) for linha in linhas[1:tamanho+1]]
+    # a primeira linha é o tamanho; o tabuleiro pode ser retangular
+    tabuleiro = [list(linha.strip()) for linha in linhas[1:] if linha.strip()]
     return tabuleiro
 
 if __name__ == "__main__":
-    nome_arquivo = "tabuleiro.in"
+    nome_arquivo = sys.argv[1] if len(sys.argv) > 1 else "tabuleiro.in"
     tabuleiro = ler_tabuleiro(nome_arquivo)
     resultado, dano = forca_bruta(tabuleiro)
-    print(f"Caminho Ã³timo: {resultado} - Dano: {dano}")
+    print(f"Caminho ótimo: {resultado} - Dano: {dano}")
 
-    with open(f"sol{nome_arquivo[4:6]}.out", 'w') as f:
+    with open(f"sol_{Path(nome_arquivo).stem}.out", 'w') as f:
         f.write(resultado)
